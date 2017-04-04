@@ -18,9 +18,6 @@ set(CLOUDWORD_SRC
 
 if(WIN32)
 	set(CLOUDWORD_LINK_LIBRARIES
-		glew32sd.lib
-		glfw3.lib
-		OpenGL32.Lib
 		SOIL.lib
 		freetyped.lib
 	)

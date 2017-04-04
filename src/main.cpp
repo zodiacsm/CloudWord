@@ -61,7 +61,6 @@ bool canFill(int x, int y, int rectWidth, int rectHeight, unsigned totalWidth, u
 }
 
 int main(int argc, const char * argv[]) {
-    // insert code here...
     std::cout << "Hello, World!\n";
     
     unsigned width = 0;
@@ -105,9 +104,7 @@ int main(int argc, const char * argv[]) {
         }
     }
     
-    //lodepng::encode("gui.png", getFontData, charWidth, charHeight);
     lodepng::encode("resources/dog4.png", resultImages, width, height);
-    //lodepng::save_file(png, "dog2.png");
     
     return 0;
 }
