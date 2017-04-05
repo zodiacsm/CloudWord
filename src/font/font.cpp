@@ -11,6 +11,8 @@
 #include <iostream>
 #include <freetype/ft2build.h>
 #include <fstream>
+#include <math.h>
+#include "lodepng.h"
 
 Font* Font::mFont = nullptr;
 
@@ -213,12 +215,67 @@ std::vector<std::string> Font::getStringList()
     string s;
     while(getline(infile,s))
     {
-        std::cout << s << std::endl;
         wordList.push_back(s);
     }
     infile.close();
     
     return std::move(wordList);
+}
+
+std::map<int, std::vector<FontData>> Font::genarateFontDataInangle(float angle)
+{
+    auto wordList = getStringList();
+    
+    std::map<int, std::vector<FontData>> fontDatas;
+    for (int j = 0; j < sizeof(FONT_SIZE) / sizeof(int); ++j)
+    {
+        std::vector<FontData> singleWordList;
+        for (int i = 0; i < wordList.size(); ++i)
+        {
+            FontData fontData;
+            int width = 0;
+            int height = 0;
+            auto data = getStringInfo(wordList[i], width, height, FONT_SIZE[j]);
+            fontData.width = width;
+            fontData.height = height;
+            fontData.data = data;
+            
+            float angleArc =  3.1415 * angle / 180;
+            std::vector<unsigned char> finalResult;
+            finalResult.resize((width * cos(angleArc) + height * sin(angleArc)) * (width * sin(angleArc) + height * cos(angleArc)) * 4);
+            
+            for (int i = 0; i < height; ++i)
+            {
+                for (int j = 0; j < width; ++j)
+                {
+                    float alpha = 0;
+                    if (j == 0)
+                    {
+                        alpha = angle;
+                    }
+                    else
+                    {
+                        alpha = atan(i / j) + angle;
+                    }
+                    int x = sqrt(i * i + j * j) * sin(3.1415 * 180 / alpha);
+                    int y = sqrt(i * i + j * j) * cos(3.1415 * 180 / alpha);
+                    
+                    finalResult[y * (width * cos(angleArc) + height * sin(angleArc)) + x] = fontData.data[i * width + j];
+                    finalResult[y * (width * cos(angleArc) + height * sin(angleArc)) + x + 1] = fontData.data[i * width + j + 1];
+                    finalResult[y * (width * cos(angleArc) + height * sin(angleArc)) + x + 2] = fontData.data[i * width + j + 2];
+                    finalResult[y * (width * cos(angleArc) + height * sin(angleArc)) + x + 3] = fontData.data[i * width + j + 3];
+                }
+            }
+            
+            lodepng::encode("resources/angle.png", finalResult, width * cos(angleArc) + height * sin(angleArc),
+                            width * sin(angleArc) + height * cos(angleArc));
+            
+            singleWordList.push_back(fontData);
+        }
+        fontDatas.insert(make_pair(FONT_SIZE[j], singleWordList));
+    }
+    
+    return std::move(fontDatas);
 }
 
 std::map<int, std::vector<FontData>> Font::genarateFontData()

@@ -83,14 +83,18 @@ int main(int argc, const char * argv[]) {
     
     auto fontdataList = Font::getInstance()->genarateFontData();
     
+    Font::getInstance()->genarateFontDataInangle(90);
+    
     for (int k = 0; k < sizeof(FONT_SIZE)/sizeof(int); ++k)
     {
         int index = 0;
-        for (int i = 0; i < width; ++i)
+        if (k < 3)
         {
-            for (int j = 0; j < height; ++j)
+            for (int count = 0; count < 500; ++count)
             {
                 auto &fontData = fontdataList[FONT_SIZE[k]][index];
+                int i = rand() % width;
+                int j = rand() % height;
                 if (canFill(i, j, fontData.width, fontData.height, width, height, image, resultImages))
                 {
                     makeRect(i, j, fontData.width, fontData.height, width, height, image, resultImages, fontData.data);
@@ -98,6 +102,25 @@ int main(int argc, const char * argv[]) {
                     if (index >= fontdataList[FONT_SIZE[k]].size())
                     {
                         index = 0;
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < width; ++i)
+            {
+                for (int j = 0; j < height; ++j)
+                {
+                    auto &fontData = fontdataList[FONT_SIZE[k]][index];
+                    if (canFill(i, j, fontData.width, fontData.height, width, height, image, resultImages))
+                    {
+                        makeRect(i, j, fontData.width, fontData.height, width, height, image, resultImages, fontData.data);
+                        index++;
+                        if (index >= fontdataList[FONT_SIZE[k]].size())
+                        {
+                            index = 0;
+                        }
                     }
                 }
             }
