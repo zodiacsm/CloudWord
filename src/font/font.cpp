@@ -272,8 +272,6 @@ std::map<int, std::vector<FontData>> Font::genarateFontDataInangle(double angle)
 			fDstY3 = -sin(arcAngle) * fSrcX3 + cos(arcAngle) * fSrcY3;
 			fDstX4 = cos(arcAngle) * fSrcX4 + sin(arcAngle) * fSrcY4;
 			fDstY4 = -sin(arcAngle) * fSrcX4 + cos(arcAngle) * fSrcY4;
-            
-            lodepng::encode("resources/plain.png", data, width, height);
 
 			int newWidth = (max(fabs(fDstX4 - fDstX1), fabs(fDstX3 - fDstX2)) + 0.5);
 			int newHeight = (max(fabs(fDstY4 - fDstY1), fabs(fDstY3 - fDstY2)) + 0.5);
@@ -309,9 +307,14 @@ std::map<int, std::vector<FontData>> Font::genarateFontDataInangle(double angle)
 				}
 			}
             
-            lodepng::encode("resources/angle.png", finalResult, newWidth, newHeight);
-            
             singleWordList.push_back(fontData);
+            if (FONT_SIZE[j] == 32 || FONT_SIZE[j] == 16)
+            {
+                fontData.width = newWidth;
+                fontData.height = newHeight;
+                fontData.data = finalResult;
+                singleWordList.push_back(fontData);
+            }
         }
         fontDatas.insert(make_pair(FONT_SIZE[j], singleWordList));
     }

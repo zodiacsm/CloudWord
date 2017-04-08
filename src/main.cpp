@@ -71,7 +71,7 @@ int main(int argc, const char * argv[]) {
     std::vector<unsigned char> resultImages;
     
     //load and decode
-    unsigned error = lodepng::load_file(png, "resources/dog.png");
+    unsigned error = lodepng::load_file(png, "resources/karate-flyingkick-icon.png");
     
     if(!error) error = lodepng::decode(image, width, height, png);
     std::cout << image.size() << std::endl;
@@ -81,9 +81,11 @@ int main(int argc, const char * argv[]) {
     
     Font::getInstance()->init();
     
-    auto fontdataList = Font::getInstance()->genarateFontData();
+    //auto fontdataList = Font::getInstance()->genarateFontData();
     
-    Font::getInstance()->genarateFontDataInangle(45);
+    auto fontdataList = Font::getInstance()->genarateFontDataInangle(45);
+    
+    //Font::getInstance()->genarateFontDataInangle(45);
     
     for (int k = 0; k < sizeof(FONT_SIZE)/sizeof(int); ++k)
     {
@@ -127,7 +129,7 @@ int main(int argc, const char * argv[]) {
         }
     }
     
-    lodepng::encode("resources/dog4.png", resultImages, width, height);
+    lodepng::encode("resources/karate-flyingkick-icon3.png", resultImages, width, height);
     
     return 0;
 }
