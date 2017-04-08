@@ -12,6 +12,7 @@
 #include <freetype/ft2build.h>
 #include <fstream>
 #include <math.h>
+#include <algorithm>
 #include "lodepng.h"
 
 Font* Font::mFont = nullptr;
@@ -240,23 +241,75 @@ std::map<int, std::vector<FontData>> Font::genarateFontDataInangle(double angle)
             fontData.height = height;
             fontData.data = data;
             
-            std::vector<unsigned char> plainData;
-            width = 4;
-            height = 4;
-            
             for (int m = 0; m < width * height; ++m)
             {
-                plainData.push_back(255);
-                plainData.push_back(0);
-                plainData.push_back(0);
-                plainData.push_back(255);
+				data.push_back(255);
+				data.push_back(0);
+				data.push_back(0);
+				data.push_back(255);
             }
+
+			int oldWidth = width;
+			int oldHeight = height;
+			double fSrcX1, fSrcY1, fSrcX2, fSrcY2, fSrcX3, fSrcY3, fSrcX4, fSrcY4;
+			fSrcX1 = (double)(-(oldWidth - 1) / 2);
+			fSrcY1 = (double)((oldHeight - 1) / 2);
+			fSrcX2 = (double)((oldWidth - 1) / 2);
+			fSrcY2 = (double)((oldHeight - 1) / 2);
+			fSrcX3 = (double)(-(oldWidth - 1) / 2);
+			fSrcY3 = (double)(-(oldHeight - 1) / 2);
+			fSrcX4 = (double)((oldWidth - 1) / 2);
+			fSrcY4 = (double)(-(oldHeight - 1) / 2);
+
+			double arcAngle = 3.1415926 / 180 * angle;
+
+			double fDstX1, fDstY1, fDstX2, fDstY2, fDstX3, fDstY3, fDstX4, fDstY4;
+			fDstX1 = cos(arcAngle) * fSrcX1 + sin(arcAngle) * fSrcY1;
+			fDstY1 = -sin(arcAngle) * fSrcX1 + cos(arcAngle) * fSrcY1;
+			fDstX2 = cos(arcAngle) * fSrcX2 + sin(arcAngle) * fSrcY2;
+			fDstY2 = -sin(arcAngle) * fSrcX2 + cos(arcAngle) * fSrcY2;
+			fDstX3 = cos(arcAngle) * fSrcX3 + sin(arcAngle) * fSrcY3;
+			fDstY3 = -sin(arcAngle) * fSrcX3 + cos(arcAngle) * fSrcY3;
+			fDstX4 = cos(arcAngle) * fSrcX4 + sin(arcAngle) * fSrcY4;
+			fDstY4 = -sin(arcAngle) * fSrcX4 + cos(arcAngle) * fSrcY4;
             
-            lodepng::encode("resources/plain.png", plainData, width, height);
+            lodepng::encode("resources/plain.png", data, width, height);
+
+			int newWidth = (max(fabs(fDstX4 - fDstX1), fabs(fDstX3 - fDstX2)) + 0.5);
+			int newHeight = (max(fabs(fDstY4 - fDstY1), fabs(fDstY3 - fDstY2)) + 0.5);
+
+			double dx = -0.5*newWidth*cos(arcAngle) - 0.5*newHeight*sin(arcAngle) + 0.5*oldWidth;
+			double dy = 0.5*newWidth*sin(arcAngle) - 0.5*newHeight*cos(arcAngle) + 0.5*oldHeight;
+
+
+			vector<unsigned char> finalResult;
+			finalResult.resize(newWidth * newHeight * 4);
+			int x, y;
+			for (int i = 0; i < newHeight; i++)
+			{
+				for (int j = 0; j < newWidth; j++)
+				{
+					x = double(j)*cos(arcAngle) + double(i)*sin(arcAngle) + dx;
+					y = double(-j)*sin(arcAngle) + double(i)*cos(arcAngle) + dy;
+
+					if ((x < 0) || (x >= oldWidth) || (y < 0) || (y >= oldHeight))
+					{
+						finalResult[(i * newWidth + j) * 4] = 0;
+						finalResult[(i * newWidth + j) * 4 + 1] = 0;
+						finalResult[(i * newWidth + j) * 4 + 2] = 0;
+						finalResult[(i * newWidth + j) * 4 + 3] = 0;
+					}
+					else
+					{
+						finalResult[(i * newWidth + j) * 4] = data[(y * oldWidth + x) * 4];
+						finalResult[(i * newWidth + j) * 4 + 1] = data[(y * oldWidth + x) * 4 + 1];
+						finalResult[(i * newWidth + j) * 4 + 2] = data[(y * oldWidth + x) * 4 + 2];
+						finalResult[(i * newWidth + j) * 4 + 3] = data[(y * oldWidth + x) * 4 + 3];
+					}
+				}
+			}
             
-            
-            lodepng::encode("resources/angle.png", finalResult, width * cos(angleArc) + height * sin(angleArc),
-                            width * sin(angleArc) + height * cos(angleArc));
+            lodepng::encode("resources/angle.png", finalResult, newWidth, newHeight);
             
             singleWordList.push_back(fontData);
         }
