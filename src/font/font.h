@@ -57,7 +57,7 @@ public:
     
     std::map<int, std::vector<FontData>> genarateFontData();
     
-    std::map<int, std::vector<FontData>> genarateFontDataInangle(float angle);
+    std::map<int, std::vector<FontData>> genarateFontDataInangle(double angle);
     
     int getCharIndex();
     

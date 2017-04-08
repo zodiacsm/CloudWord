@@ -83,7 +83,7 @@ int main(int argc, const char * argv[]) {
     
     auto fontdataList = Font::getInstance()->genarateFontData();
     
-    Font::getInstance()->genarateFontDataInangle(90);
+    Font::getInstance()->genarateFontDataInangle(45);
     
     for (int k = 0; k < sizeof(FONT_SIZE)/sizeof(int); ++k)
     {

@@ -222,7 +222,7 @@ std::vector<std::string> Font::getStringList()
     return std::move(wordList);
 }
 
-std::map<int, std::vector<FontData>> Font::genarateFontDataInangle(float angle)
+std::map<int, std::vector<FontData>> Font::genarateFontDataInangle(double angle)
 {
     auto wordList = getStringList();
     
@@ -240,32 +240,20 @@ std::map<int, std::vector<FontData>> Font::genarateFontDataInangle(float angle)
             fontData.height = height;
             fontData.data = data;
             
-            float angleArc =  3.1415 * angle / 180;
-            std::vector<unsigned char> finalResult;
-            finalResult.resize((width * cos(angleArc) + height * sin(angleArc)) * (width * sin(angleArc) + height * cos(angleArc)) * 4);
+            std::vector<unsigned char> plainData;
+            width = 4;
+            height = 4;
             
-            for (int i = 0; i < height; ++i)
+            for (int m = 0; m < width * height; ++m)
             {
-                for (int j = 0; j < width; ++j)
-                {
-                    float alpha = 0;
-                    if (j == 0)
-                    {
-                        alpha = angle;
-                    }
-                    else
-                    {
-                        alpha = atan(i / j) + angle;
-                    }
-                    int x = sqrt(i * i + j * j) * sin(3.1415 * 180 / alpha);
-                    int y = sqrt(i * i + j * j) * cos(3.1415 * 180 / alpha);
-                    
-                    finalResult[y * (width * cos(angleArc) + height * sin(angleArc)) + x] = fontData.data[i * width + j];
-                    finalResult[y * (width * cos(angleArc) + height * sin(angleArc)) + x + 1] = fontData.data[i * width + j + 1];
-                    finalResult[y * (width * cos(angleArc) + height * sin(angleArc)) + x + 2] = fontData.data[i * width + j + 2];
-                    finalResult[y * (width * cos(angleArc) + height * sin(angleArc)) + x + 3] = fontData.data[i * width + j + 3];
-                }
+                plainData.push_back(255);
+                plainData.push_back(0);
+                plainData.push_back(0);
+                plainData.push_back(255);
             }
+            
+            lodepng::encode("resources/plain.png", plainData, width, height);
+            
             
             lodepng::encode("resources/angle.png", finalResult, width * cos(angleArc) + height * sin(angleArc),
                             width * sin(angleArc) + height * cos(angleArc));
