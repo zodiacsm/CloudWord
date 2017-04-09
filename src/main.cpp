@@ -12,7 +12,6 @@
 #include "lodepng.h"
 #include "font.h"
 #include <time.h>
-#include <windows.h>
 
 static const int FONT_SIZE[] = {512, 256, 128, 64, 32, 16, 8};
 //static const Color colors[] = {Color(0, 204, 51), Color(0, 204, 102), Color(0, 255, 102), Color(0, 204, 0)};
@@ -84,8 +83,6 @@ int main(int argc, const char * argv[]) {
 			fontdataList[i->first].push_back(*j);
 		}
 	}
-	DWORD t1, t2;
-	t1 = GetTickCount();
     if(!error) error = lodepng_decode32_file(&image, &width, &height, "resources/dog.png");
 	resultImages = (unsigned char*)malloc(sizeof(char) * width * height * 4);
 	memset(resultImages, 0, sizeof(char) * width * height * 4);
@@ -134,9 +131,6 @@ int main(int argc, const char * argv[]) {
             }
         }
     }
-
-	t2 = GetTickCount();
-	printf("Use Time:%d\n", (t2 - t1));
     
     lodepng::encode("resources/karate-flyingkick-icon7.png", resultImages, width, height);
     return 0;
