@@ -53,20 +53,16 @@ public:
 
 public:
     void init();
-    
-    std::vector<unsigned char> getCharInfo(int index, int &width, int &height, int fontSize);
 
 	FontDataBuffer getCharInfo(int index, int fontSize);
     
+	std::map<int, std::vector<FontDataBuffer>> genarateFontData();
+
 	FontDataBuffer getStringInfo(const std::string &text, int fontSize);
     
     std::vector<std::string> getStringList();
     
-    std::map<int, std::vector<FontDataBuffer>> genarateFontData();
-    
     std::map<int, std::vector<FontDataBuffer>> genarateFontDataInangle(double angle);
-    
-    void getFontData(std::string text, float x, float y, float scale);
     
     int getFontIndex(int fontSize);
     

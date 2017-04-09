@@ -15,7 +15,6 @@
 #include <algorithm>
 #include "lodepng.h"
 #include <time.h>
-#include <Windows.h>
 
 Font* Font::mFont = nullptr;
 
@@ -47,17 +46,14 @@ void Font::init()
     for (int i = 0; i < sizeof(FONT_SIZE) / sizeof(int); ++i)
     {
         FT_Face face;
-        if (FT_New_Face(ft, "resources/gongfang.otf", 0, &face))
-        //if (FT_New_Face(ft, "mifu.ttf", 0, &face))
+        if (FT_New_Face(ft, "resources/huakang.ttf", 0, &face))
         {
             std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
         }
-        // Set size to load glyphs as
         FT_Set_Pixel_Sizes(face, 0, FONT_SIZE[i]);
         faces.push_back(face);
     }
-    
-    // Destroy FreeType once we're finished
+
 //    FT_Done_Face(face);
 //    FT_Done_FreeType(ft);
 }
@@ -74,66 +70,6 @@ int Font::getFontIndex(int fontSize)
     return -1;
 }
 
-vector<unsigned char> Font::getCharInfo(int index, int &width, int &height, int fontSize)
-{
-    int fontIndex = getFontIndex(fontSize);
-    
-    if (fontIndex == -1)
-    {
-        return vector<unsigned char>();
-    }
-
-    // Load character glyph
-    if (FT_Load_Char(faces[fontIndex], index, FT_LOAD_RENDER))
-    {
-        std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
-    }
-    
-    width = faces[fontIndex]->glyph->bitmap.width;
-    height = faces[fontIndex]->glyph->bitmap.rows;
-    int left = faces[fontIndex]->glyph->bitmap_left;
-    int top = (int)(-faces[fontIndex]->glyph->bitmap_top + (faces[fontIndex]->size->metrics.ascender >> 6));
-    ;
-
-    std::vector<unsigned char> buffers;
-	buffers.resize(fontSize * fontSize * 4);
-
-	double dur2;
-	clock_t start2, end2;
-	start2 = clock();
-    
-    for (int i = 0; i < fontSize; ++i)
-    {
-        for (int j = 0; j < fontSize; j++)
-        {
-            if (i < top || j < left || i >= top + height || j >= left + width)
-            {
-				buffers[(i * fontSize + j) * 4] = 0;
-				buffers[(i * fontSize + j) * 4 + 1] = 0;
-				buffers[(i * fontSize + j) * 4 + 2] = 0;
-				buffers[(i * fontSize + j) * 4 + 3] = 0;
-            }
-            else
-            {
-				buffers[(i * fontSize + j) * 4] = faces[fontIndex]->glyph->bitmap.buffer[(i - top) * width + j - left];
-				buffers[(i * fontSize + j) * 4 + 1] = 0;
-				buffers[(i * fontSize + j) * 4 + 2] = 0;
-				buffers[(i * fontSize + j) * 4 + 3] = faces[fontIndex]->glyph->bitmap.buffer[(i - top) * width + j - left];
-            }
-        }
-    }
-
-	end2 = clock();
-	dur2 = (double)(end2 - start2);
-
-	printf("fontSize Use Time:%f\n", dur2);
-    
-    width = fontSize;
-    height = fontSize;
-    
-    return std::move(buffers);
-}
-
 FontDataBuffer Font::getCharInfo(int index, int fontSize)
 {
 	int fontIndex = getFontIndex(fontSize);
@@ -143,35 +79,29 @@ FontDataBuffer Font::getCharInfo(int index, int fontSize)
 		return FontDataBuffer(nullptr, 0, 0);
 	}
 
-	double dur;
-	clock_t start, end;
-	start = clock();
-
 	// Load character glyph
 	if (FT_Load_Char(faces[fontIndex], index, FT_LOAD_RENDER))
 	{
 		std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
 	}
 
-	end = clock();
-	dur = (double)(end - start);
-
-	//printf("FT_Load_Char Use Time:%f\n", dur);
-
 	int charWidth = faces[fontIndex]->glyph->bitmap.width;
 	int charHeight = faces[fontIndex]->glyph->bitmap.rows;
 	int left = faces[fontIndex]->glyph->bitmap_left;
-	int top = (int)(-faces[fontIndex]->glyph->bitmap_top + (faces[fontIndex]->size->metrics.ascender >> 6));
-	;
 
 	unsigned char* buffers = (unsigned char*)malloc(sizeof(char) * fontSize * fontSize);
-	(unsigned char*)malloc(fontSize * fontSize);
 	memset(buffers, 0, sizeof(char) * fontSize * fontSize);
 
 	for (int i = 0; i < charHeight; ++i)
 	{
-		memcpy(buffers + (i + top - 2) * fontSize + left, faces[fontIndex]->glyph->bitmap.buffer + i * charWidth, charWidth);
+		memcpy(buffers + i * fontSize + left, faces[fontIndex]->glyph->bitmap.buffer + i * charWidth, charWidth);
 	}
+
+
+// 	cout << charHeight * fontSize + charWidth << endl;
+// 	cout << fontSize * fontSize << endl;
+// 	memset(buffers + left, 1, sizeof(char) * charWidth);
+// 	memset(buffers + (charHeight + 1) * fontSize + left, 1, sizeof(char) * charWidth);
 
 	FontDataBuffer fontDataBuffer;
 	fontDataBuffer.data = buffers;
@@ -215,6 +145,7 @@ FontDataBuffer Font::getStringInfo(const std::string &text, int fontSize)
     }
     
 	unsigned char* finalResult = (unsigned char*)malloc(fontSize * fontSize * fontLength);
+	memset(finalResult, 0, sizeof(char) * fontSize * fontSize * fontLength);
     for (int i = 0; i < fontSize; ++i)
     {
         for (int j = 0; j < fontLength; ++j)
@@ -228,34 +159,6 @@ FontDataBuffer Font::getStringInfo(const std::string &text, int fontSize)
 	fontDataBuffer.width = fontSize * fontLength;
 	fontDataBuffer.height = fontSize;
     return std::move(fontDataBuffer);
-}
-
-void Font::getFontData(std::string text, float x, float y, float scale)
-{
-    int len = 0;
-    std::string::const_iterator c;
-    for (c = text.begin(); c != text.end(); c+=len)
-    {
-        int result = 0;
-        if ((*c & 0x80) == 0x0)
-        {
-            len = 1;
-            result = *c;
-        }
-        else if ((*c & 0xE0) == 0xB0)
-        {
-            len = 2;
-        }
-        else if ((*c & 0xF0) == 0xE0)
-        {
-            len = 3;
-            int m = (0x0F & *c);
-            int n = (0x3F & *(c + 1));
-            int k = (0x3F & *(c + 2));
-            
-            result = m << 12 | n << 6 | k;
-        }
-    }
 }
 
 std::vector<std::string> Font::getStringList()
@@ -279,8 +182,8 @@ std::map<int, std::vector<FontDataBuffer>> Font::genarateFontDataInangle(double 
     auto wordList = getStringList();
 
 	double arcAngle = 3.1415926 / 180 * angle;
-	float sinAngle = sin(arcAngle);
-	float cosAngle = cos(arcAngle);
+	double sinAngle = sin(arcAngle);
+	double cosAngle = cos(arcAngle);
     
     std::map<int, std::vector<FontDataBuffer>> fontDatas;
     for (int j = 0; j < sizeof(FONT_SIZE) / sizeof(int); ++j)
@@ -302,8 +205,6 @@ std::map<int, std::vector<FontDataBuffer>> Font::genarateFontDataInangle(double 
 			fSrcX4 = (double)((oldWidth - 1) / 2);
 			fSrcY4 = (double)(-(oldHeight - 1) / 2);
 
-			double arcAngle = 3.1415926 / 180 * angle;
-
 			double fDstX1, fDstY1, fDstX2, fDstY2, fDstX3, fDstY3, fDstX4, fDstY4;
 			fDstX1 = cosAngle * fSrcX1 + sinAngle * fSrcY1;
 			fDstY1 = -sinAngle * fSrcX1 + cosAngle * fSrcY1;
@@ -320,8 +221,9 @@ std::map<int, std::vector<FontDataBuffer>> Font::genarateFontDataInangle(double 
 			double dx = -0.5*newWidth*cosAngle - 0.5*newHeight*sinAngle + 0.5*oldWidth;
 			double dy = 0.5*newWidth*sinAngle - 0.5*newHeight*cosAngle + 0.5*oldHeight;
 
-
-			unsigned char* finalData = (unsigned char*)malloc(newWidth * newHeight * 4);
+			unsigned char* finalData = (unsigned char*)malloc(newWidth * newHeight);
+			memset(finalData, 0, sizeof(char) * newWidth * newHeight);
+			
 			int x, y;
 			for (int i = 0; i < newHeight; i++)
 			{
@@ -330,22 +232,9 @@ std::map<int, std::vector<FontDataBuffer>> Font::genarateFontDataInangle(double 
 					x = double(j)*cosAngle + double(i)*sinAngle + dx;
 					y = double(-j)*sinAngle + double(i)*cosAngle + dy;
 
-					if ((x < 0) || (x >= oldWidth) || (y < 0) || (y >= oldHeight))
+					if (!((x < 0) || (x >= oldWidth) || (y < 0) || (y >= oldHeight)))
 					{
-						int index = (i * newWidth + j) * 4;
-						finalData[index] = 0;
-						finalData[index + 1] = 0;
-						finalData[index + 2] = 0;
-						finalData[index + 3] = 0;
-					}
-					else
-					{
-						int desIndex = (i * newWidth + j) << 2;
-						int srcIndex = (y * oldWidth + x) << 2;
-						finalData[desIndex] = fontData.data[srcIndex];
-						finalData[desIndex + 1] = fontData.data[srcIndex + 1];
-						finalData[desIndex + 2] = fontData.data[srcIndex + 2];
-						finalData[desIndex + 3] = fontData.data[srcIndex + 3];
+						finalData[i * newWidth + j] = fontData.data[y * oldWidth + x];
 					}
 				}
 			}
@@ -353,6 +242,7 @@ std::map<int, std::vector<FontDataBuffer>> Font::genarateFontDataInangle(double 
 			FontDataBuffer finalDataBuffer;
 			finalDataBuffer.width = newWidth;
 			finalDataBuffer.height = newHeight;
+			finalDataBuffer.data = finalData;
             singleWordList.push_back(finalDataBuffer);
 //             if (FONT_SIZE[j] == 32 || FONT_SIZE[j] == 16)
 //             {
@@ -370,20 +260,20 @@ std::map<int, std::vector<FontDataBuffer>> Font::genarateFontDataInangle(double 
 
 std::map<int, std::vector<FontDataBuffer>> Font::genarateFontData()
 {
-    auto wordList = getStringList();
-    
-    std::map<int, std::vector<FontDataBuffer>> fontDatas;
-    for (int j = 0; j < sizeof(FONT_SIZE) / sizeof(int); ++j)
-    {
-        std::vector<FontDataBuffer> singleWordList;
-        for (int i = 0; i < wordList.size(); ++i)
-        {
+	auto wordList = getStringList();
+
+	std::map<int, std::vector<FontDataBuffer>> fontDatas;
+	for (int j = 0; j < sizeof(FONT_SIZE) / sizeof(int); ++j)
+	{
+		std::vector<FontDataBuffer> singleWordList;
+		for (int i = 0; i < wordList.size(); ++i)
+		{
 			FontDataBuffer fontData = getStringInfo(wordList[i], FONT_SIZE[j]);
-            
-            singleWordList.push_back(fontData);
-        }
-        fontDatas.insert(make_pair(FONT_SIZE[j], singleWordList));
-    }
-    
-    return std::move(fontDatas);
+
+			singleWordList.push_back(fontData);
+		}
+		fontDatas.insert(make_pair(FONT_SIZE[j], singleWordList));
+	}
+
+	return std::move(fontDatas);
 }
