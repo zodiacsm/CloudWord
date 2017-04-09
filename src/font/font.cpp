@@ -82,21 +82,12 @@ vector<unsigned char> Font::getCharInfo(int index, int &width, int &height, int 
     {
         return vector<unsigned char>();
     }
-    
-	double dur;
-	clock_t start, end;
-	start = clock();
 
     // Load character glyph
     if (FT_Load_Char(faces[fontIndex], index, FT_LOAD_RENDER))
     {
         std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
     }
-
-	end = clock();
-	dur = (double)(end - start);
-
-	printf("FT_Load_Char Use Time:%f\n", dur);
     
     width = faces[fontIndex]->glyph->bitmap.width;
     height = faces[fontIndex]->glyph->bitmap.rows;
@@ -173,39 +164,14 @@ FontDataBuffer Font::getCharInfo(int index, int fontSize)
 	int top = (int)(-faces[fontIndex]->glyph->bitmap_top + (faces[fontIndex]->size->metrics.ascender >> 6));
 	;
 
-	double dur2;
-	clock_t start2, end2;
-	start2 = clock();
-
-	unsigned char* buffers = (unsigned char*)malloc(fontSize * fontSize);
+	unsigned char* buffers = (unsigned char*)malloc(sizeof(char) * fontSize * fontSize);
+	(unsigned char*)malloc(fontSize * fontSize);
 	memset(buffers, 0, sizeof(char) * fontSize * fontSize);
-	static int totalTime = 0;
-	DWORD t1, t2;
-	t1 = GetTickCount();
-
-// 	for (int i = 0; i < fontSize; ++i)
-// 	{
-// 		for (int j = 0; j < fontSize; j++)
-// 		{
-// 			if (!(i < top || j < left || i >= top + charHeight || j >= left + charWidth))
-// 			{
-// 				buffers[(i * fontSize + j) * 4] = faces[fontIndex]->glyph->bitmap.buffer[(i - top) * charWidth + j - left];
-// 				buffers[(i * fontSize + j) * 4 + 3] = faces[fontIndex]->glyph->bitmap.buffer[(i - top) * charWidth + j - left];
-// 			}
-// 		}
-// 	}
 
 	for (int i = 0; i < charHeight; ++i)
 	{
-		memcpy(buffers + (i + top) * fontSize + left, faces[fontIndex]->glyph->bitmap.buffer + i * charWidth, charWidth);
+		memcpy(buffers + (i + top - 2) * fontSize + left, faces[fontIndex]->glyph->bitmap.buffer + i * charWidth, charWidth);
 	}
-
-	t2 = GetTickCount();
-	printf("Use Time:%d\n", (t2 - t1));
-	totalTime += (t2 - t1);
-	printf("Total d Use Time:%d\n", totalTime);
-
-	//printf("fontSize Use Time:%f\n", dur2);
 
 	FontDataBuffer fontDataBuffer;
 	fontDataBuffer.data = buffers;
@@ -247,24 +213,15 @@ FontDataBuffer Font::getStringInfo(const std::string &text, int fontSize)
         resultList.push_back(charInfo);
         fontLength++;
     }
-
-	static int totalTime = 0;
-	DWORD t1, t2;
-	t1 = GetTickCount();
     
-	unsigned char* finalResult = (unsigned char*)malloc(fontSize * fontSize * fontLength * 4);
+	unsigned char* finalResult = (unsigned char*)malloc(fontSize * fontSize * fontLength);
     for (int i = 0; i < fontSize; ++i)
     {
         for (int j = 0; j < fontLength; ++j)
         {
-			memcpy(finalResult + (i * fontLength * fontSize + j * fontSize) * 4, resultList[j].data + (i * fontSize) * 4, fontSize * 4);
+			memcpy(finalResult + i * fontLength * fontSize + j * fontSize, resultList[j].data + i * fontSize, fontSize);
         }
     }
-
-	t2 = GetTickCount();
-	printf("String info Use Time:%d\n", (t2 - t1));
-	totalTime += (t2 - t1);
-	printf("String info Total Use Time:%d\n", totalTime);
     
 	FontDataBuffer fontDataBuffer;
 	fontDataBuffer.data = finalResult;
