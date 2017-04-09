@@ -11,6 +11,8 @@
 #include <vector>
 #include "lodepng.h"
 #include "font.h"
+#include <time.h>
+#include <windows.h>
 
 static const int FONT_SIZE[] = {512, 256, 128, 64, 32, 16, 8};
 //static const Color colors[] = {Color(0, 204, 51), Color(0, 204, 102), Color(0, 255, 102), Color(0, 204, 0)};
@@ -18,7 +20,7 @@ static const Color colors[] = {Color(102, 0, 153), Color(102, 0, 102), Color(102
 
 using namespace std;
 
-void makeRect(int x, int y, int rectWidth, int rectHeight, unsigned totalWidth, unsigned totalHeight, std::vector<unsigned char> &dest, vector<unsigned char> &resultImage, vector<unsigned char> &input)
+void makeRect(int x, int y, int rectWidth, int rectHeight, unsigned totalWidth, unsigned totalHeight, unsigned char* dest, unsigned char* resultImage, unsigned char* input)
 {
     Color color = colors[rand()%4];
     for (int i = 0; i < rectHeight; ++i)
@@ -40,7 +42,7 @@ void makeRect(int x, int y, int rectWidth, int rectHeight, unsigned totalWidth, 
     }
 }
 
-bool canFill(int x, int y, int rectWidth, int rectHeight, unsigned totalWidth, unsigned totalHeight, std::vector<unsigned char> &dest, vector<unsigned char> &resultImage)
+bool canFill(int x, int y, int rectWidth, int rectHeight, unsigned totalWidth, unsigned totalHeight, unsigned char* dest, unsigned char* resultImage)
 {
     for (int i = 0; i < rectHeight; ++i)
     {
@@ -66,24 +68,36 @@ int main(int argc, const char * argv[]) {
     unsigned width = 0;
     unsigned height = 0;
     
-    std::vector<unsigned char> png;
-    std::vector<unsigned char> image; //the raw pixels
-    std::vector<unsigned char> resultImages;
+    unsigned char* image = nullptr; //the raw pixels
+    unsigned char* resultImages = nullptr;
     
     //load and decode
-    unsigned error = lodepng::load_file(png, "resources/karate-flyingkick-icon.png");
+    unsigned error = 0;
     
-    if(!error) error = lodepng::decode(image, width, height, png);
-    std::cout << image.size() << std::endl;
-    for (int i = 0; i < image.size(); ++i) {
-        resultImages.push_back(0);
-    }
-    
+    if(!error) error = lodepng_decode32_file(&image, &width, &height, "resources/karate-flyingkick-icon.png");
+	resultImages = (unsigned char*)malloc(width * height * 4);
+	memset(resultImages, 0, sizeof(char) * width * height * 4);
+	time_t startTime = time(NULL);
+	time_t fontInitStart = time(NULL);
+
     Font::getInstance()->init();
+
+	DWORD t1, t2;
+	t1 = GetTickCount();
     
-    //auto fontdataList = Font::getInstance()->genarateFontData();
+    auto fontdataList = Font::getInstance()->genarateFontData();
+
+	t2 = GetTickCount();
+	printf("Use Time:%d\n", (t2 - t1));
+
+// 	time_t fontInitStop = time(NULL);
+// 	printf("Use Time:%ld\n", (fontInitStop - fontInitStart));
+
+
+
+
     
-    auto fontdataList = Font::getInstance()->genarateFontDataInangle(45);
+    //auto fontdataList = Font::getInstance()->genarateFontDataInangle(45);
     
     //Font::getInstance()->genarateFontDataInangle(45);
     
@@ -128,8 +142,15 @@ int main(int argc, const char * argv[]) {
             }
         }
     }
+
+
     
     lodepng::encode("resources/karate-flyingkick-icon3.png", resultImages, width, height);
+
+// 	time_t endtTime = time(NULL);
+// 	printf("Program Use Time:%ld\n", (endtTime - startTime));
+
+
     
     return 0;
 }

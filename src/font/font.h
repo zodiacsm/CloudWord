@@ -30,12 +30,17 @@ public:
     int b;
 };
 
-class FontData
+class FontDataBuffer
 {
 public:
-    int width;
-    int height;
-    std::vector<unsigned char> data;
+	int width;
+	int height;
+	unsigned char* data;
+
+	FontDataBuffer(unsigned char* data = nullptr, int width = 0, int height = 0)
+		:data(data), width(width), height(height)
+	{
+	}
 };
 
 class Font
@@ -50,16 +55,16 @@ public:
     void init();
     
     std::vector<unsigned char> getCharInfo(int index, int &width, int &height, int fontSize);
+
+	FontDataBuffer getCharInfo(int index, int fontSize);
     
-    std::vector<unsigned char> getStringInfo(const std::string &text, int &width, int &height, int fontSize);
+	FontDataBuffer getStringInfo(const std::string &text, int fontSize);
     
     std::vector<std::string> getStringList();
     
-    std::map<int, std::vector<FontData>> genarateFontData();
+    std::map<int, std::vector<FontDataBuffer>> genarateFontData();
     
-    std::map<int, std::vector<FontData>> genarateFontDataInangle(double angle);
-    
-    int getCharIndex();
+    std::map<int, std::vector<FontDataBuffer>> genarateFontDataInangle(double angle);
     
     void getFontData(std::string text, float x, float y, float scale);
     
