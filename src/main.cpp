@@ -91,7 +91,7 @@ int main(int argc, const char * argv[]) {
 	memset(mask, 0, sizeof(char) * width * height);
     for (int k = 0; k < sizeof(FONT_SIZE)/sizeof(int); ++k)
     {
-		int step = max(1, FONT_SIZE[k] / 4);
+		//int step = max(1, FONT_SIZE[k] / 4);
         int index = 0;
 //         if (k < 3)
 //         {

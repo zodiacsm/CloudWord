@@ -139,7 +139,7 @@ FontDataBuffer Font::getStringInfo(const std::string &text, int fontSize)
             result = m << 12 | n << 6 | k;
         }
         
-        auto &charInfo = getCharInfo(result, fontSize);
+        auto charInfo = getCharInfo(result, fontSize);
         resultList.push_back(charInfo);
         fontLength++;
     }
